@@ -36,3 +36,21 @@ Body raw:
 ```
 
 ## Include in Webserver
+
+Example for python:
+
+```python
+import requests
+    url = os.getenv("API_URL")
+    key = os.getenv("API_KEY") 
+    # --------
+    headers = {
+        "X-API-Key": key,
+    }
+    data = {
+        "question": f"{input}",
+    }
+    logging.debug(f"Query: {data}", data)
+    response = requests.post(url, json=data, headers=headers, timeout=90)
+
+```
