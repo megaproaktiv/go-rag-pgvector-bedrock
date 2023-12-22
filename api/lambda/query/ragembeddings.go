@@ -7,6 +7,7 @@ type QueryRequest struct {
 }
 
 type RagDocument struct {
+	Id      int    `json:"id"`
 	Content string `json:"content"`
 	Context string `json:"context"`
 }

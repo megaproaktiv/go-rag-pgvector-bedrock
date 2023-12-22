@@ -92,10 +92,10 @@ func Query(c *gin.Context) {
 		documentExcerpts += content + "\n"
 		documentExcerpts += postExcerpt
 		Documents = append(Documents, ragembeddings.RagDocument{
+			Id:      int(id),
 			Content: content,
 			Context: context,
 		})
-
 	}
 	tmpl, err := template.New("Prompt").Parse(templateStr)
 	if err != nil {
@@ -113,7 +113,6 @@ func Query(c *gin.Context) {
 
 	// Extract the string from the buffer
 	prompt := buffer.String()
-
 	answer := bedrock.Chat(prompt)
 	response := ragembeddings.Response{
 		Answer:    answer,
