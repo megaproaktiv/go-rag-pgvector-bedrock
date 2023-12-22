@@ -1,0 +1,5 @@
+*.tmpl
+.DS_Store
+.aws-sam
+api/.aws-sam/build.toml
+api/samconfig.toml

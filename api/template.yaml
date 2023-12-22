@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  go-rag-pgvector-bedrock
+
+  SAM Template for go-rag-pgvector-bedrock
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  StageName:
+    Type: String
+    Default: dev
+Resources:
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda/query
+      Architectures:
+        - arm64
+      Handler: bootstrap
+      Runtime: provided.al2
+      MemorySize: 1024
+      Timeout: 90
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: BedrockRuntime
+              Effect: Allow
+              Action:
+                - bedrockruntime:InvokeModel
+                - bedrock:InvokeModel
+              Resource: "*"
+        # postgres access is handled by the password
+      Events:
+        ApiEvents:
+          Type: Api
+          Properties:
+            Path: /query
+            Method: POST
+            RestApiId: !Ref RagAPIGateway
+            Auth:
+              ApiKeyRequired: true
+      Environment:
+        Variables:
+          PGUSER: "{{resolve:ssm:/rag/PGUSER:1}}"
+          PGPASSWORD: "{{resolve:ssm:/rag/PGPASSWORD:1}}"
+          PGHOST: "{{resolve:ssm:/rag/PGHOST}}"
+          PGPORT: "{{resolve:ssm:/rag/PGPORT:1}}"
+          PGDATABASE: "{{resolve:ssm:/rag/PGDATABASE:1}}"
+
+  RagAPIGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      Auth:
+        ApiKeyRequired: true # for all methods
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: Usage plan for this API
+          Quota:
+            Limit: 500
+            Period: DAY
+          Throttle:
+            BurstLimit: 100
+            RateLimit: 50
+          Tags:
+            - Key: TagName
+              Value: TagValue
+
+Outputs:
+  APIGWEndpoint:
+    Description: API Gateway Endpoint
+    Value:
+      Fn::Sub: https://${RagAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/dev/query

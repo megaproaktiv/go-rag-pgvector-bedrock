@@ -1,0 +1,47 @@
+direction: right
+
+user: User {
+    shape: person
+}
+user -> api: Question
+
+api: API-Gateway{
+    shape: image
+    icon: https://icons.terrastruct.com/aws%2FNetworking%20&%20Content%20Delivery%2FAmazon-API-Gateway.svg
+}
+
+api -> lambda
+
+lambda: query {
+    shape: image
+    icon: https://icons.terrastruct.com/aws%2FCompute%2FAWS-Lambda_Lambda-Function_light-bg.svg
+}
+
+
+lambda -> rds
+
+rds: Embeddings{
+    shape: image
+    icon: https://icons.terrastruct.com/dev%2Fpostgresql.svg
+}
+
+lambda -> bedrock
+
+
+bedrock: Bedrock Claude {
+    shape: image
+    icon: img/Arch_Amazon-Bedrock_48.svg
+}
+
+embedding: Bedrock titan {
+    shape: image
+    icon: img/Arch_Amazon-Bedrock_48.svg
+}
+
+admin: Admin {
+    shape: Person
+}
+admin -> rds: import
+admin <- embedding: get vectors for text chunks
+
+lambda <- embedding: get vectors for question

@@ -1,0 +1,72 @@
+# https://taskfile.dev
+
+version: "3"
+vars:
+  STACK: ragembeddings
+
+env:
+  # Put you parameters here, task
+  SECRET_CONFIG: "rds!cluster-9dad2a28-4a61-4573-9021-fb5fbfbaf4f1"
+  PGUSER: "vectordb"
+  PGPASSWORD: "***"
+  PGHOST: "database-1.cluster-ro-cb6myuz574kq.eu-central-1.rds.amazonaws.com"
+  PGPORT: 5432
+  PGDATABASE: "vectordb"
+  PGCONNECT_TIMEOUT: 5
+  CONTENT_SEPARATOR: "document"
+  AWS_REGION: "eu-central-1"
+  AWS_DEFAULT_REGION: "eu-central-1"
+
+tasks:
+  run:
+    dir: lambda/query
+    desc: Run the application
+    cmds:
+      - go test -v -run TestOpenAI
+  chat:
+    dir: lambda/query
+    desc: Run the chat test application
+    cmds:
+      - go test -v -run TestChat
+
+  build:
+    desc: Sam build
+    cmds:
+      - sam build
+    silent: true
+
+  deploy:
+    desc: Sam deploy
+    deps:
+      - build
+    cmds:
+      - sam deploy
+    silent: true
+
+  destroy:
+    desc: sam delete
+    cmds:
+      - sam delete
+
+  sync:
+    desc: sync code
+    cmds:
+      - sam sync --code --stack-name {{.STACK}} --watch
+
+  save-config:
+    desc: save config to ssm
+    cmds:
+      - aws ssm delete-parameter --name "/rag/PGUSER" --region {{.AWS_REGION}}
+      - aws ssm delete-parameter --name "/rag/PGPASSWORD" --region {{.AWS_REGION}}
+      - aws ssm delete-parameter --name "/rag/PGHOST" --region {{.AWS_REGION}}
+      - aws ssm delete-parameter --name "/rag/PGPORT" --region {{.AWS_REGION}}
+      - aws ssm delete-parameter --name "/rag/PGDATABASE" --region {{.AWS_REGION}}
+      - aws ssm delete-parameter --name "/rag/PGCONNECT_TIMEOUT" --region {{.AWS_REGION}}
+      - aws ssm delete-parameter --name "/rag/CONTENT_SEPARATOR" --region {{.AWS_REGION}}
+      - aws ssm put-parameter --name "/rag/PGUSER" --value {{.PGUSER}} --type String --region {{.AWS_REGION}} --overwrite
+      - aws ssm put-parameter --name "/rag/PGPASSWORD" --value '{{.PGPASSWORD}}' --type String --region {{.AWS_REGION}} --overwrite
+      - aws ssm put-parameter --name "/rag/PGHOST" --value {{.PGHOST}} --type String --region {{.AWS_REGION}} --overwrite
+      - aws ssm put-parameter --name "/rag/PGPORT" --value {{.PGPORT}} --type String --region {{.AWS_REGION}} --overwrite
+      - aws ssm put-parameter --name "/rag/PGDATABASE" --value {{.PGDATABASE}} --type String --region {{.AWS_REGION}} --overwrite
+      - aws ssm put-parameter --name "/rag/PGCONNECT_TIMEOUT" --value {{.PGCONNECT_TIMEOUT}} --type String --region {{.AWS_REGION}} --overwrite
+      - aws ssm put-parameter --name "/rag/CONTENT_SEPARATOR" --value {{.CONTENT_SEPARATOR}} --type String --region {{.AWS_REGION}} --overwrite
